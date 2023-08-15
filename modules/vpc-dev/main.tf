@@ -1,0 +1,111 @@
+################################################################################
+# VPC
+################################################################################
+
+resource "aws_vpc" "dev" {
+  cidr_block = var.vpc_cidr
+
+  tags = {
+      Name = "${var.resource_prefix}-vpc-dev"
+  }
+}
+
+################################################################################
+# Subnets
+################################################################################
+
+resource "aws_subnet" "tgwattach_a" {
+  vpc_id            = aws_vpc.dev.id
+  cidr_block        = var.subnet_tgwattacha_cidr
+  availability_zone = data.aws_availability_zones.azs.names[0]
+
+  tags = {
+      Name = "${var.resource_prefix}-subnet-tgwattach-a"
+  }
+}
+
+resource "aws_subnet" "tgwattach_b" {
+  vpc_id            = aws_vpc.dev.id
+  cidr_block        = var.subnet_tgwattachb_cidr
+  availability_zone = data.aws_availability_zones.azs.names[1]
+
+  tags = {
+      Name = "${var.resource_prefix}-subnet-tgwattach-b"
+  }
+}
+
+resource "aws_subnet" "app_a" {
+  vpc_id     = aws_vpc.dev.id
+  cidr_block = var.subnet_appa_cidr
+  availability_zone = data.aws_availability_zones.azs.names[0]
+
+  tags = {
+      Name = "${var.resource_prefix}-subnet-app-a"
+  }
+}
+
+resource "aws_subnet" "app_b" {
+  vpc_id     = aws_vpc.dev.id
+  cidr_block = var.subnet_appb_cidr
+  availability_zone = data.aws_availability_zones.azs.names[1]
+
+  tags = {
+      Name = "${var.resource_prefix}-subnet-app-b"
+  }
+}
+
+################################################################################
+# Tables de routage VPC
+################################################################################
+
+resource "aws_route_table" "dev" {
+  vpc_id = aws_vpc.dev.id
+
+  tags = {
+      Name = "${var.resource_prefix}-vpc-dev-rt"
+  }
+}
+
+resource "aws_route" "tgw_route" {
+  route_table_id         = aws_route_table.dev.id
+  destination_cidr_block = "0.0.0.0/0"
+  transit_gateway_id        = var.tgw_principal_id
+}
+
+resource "aws_route_table_association" "tgw_route_app_a" {
+  subnet_id      = aws_subnet.app_a.id
+  route_table_id = aws_route_table.dev.id
+}
+
+resource "aws_route_table_association" "tgw_route_app_b" {
+  subnet_id      = aws_subnet.app_b.id
+  route_table_id = aws_route_table.dev.id
+}
+
+################################################################################
+# Attachement Tgw et Association/ Propagation table de routage
+################################################################################
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "vpc_attachment" {
+  subnet_ids             = [aws_subnet.tgwattach_a.id, aws_subnet.tgwattach_b.id]
+  transit_gateway_id     = var.tgw_principal_id
+  vpc_id                 = aws_vpc.dev.id
+
+  tags = {
+      Name = "${var.resource_prefix}-vpc-perimetre-tgwattach"
+  }
+}
+
+resource "aws_ec2_transit_gateway_route_table_association" "tgw_route_table_association" {
+  count = length(var.tgw_association_route_table_ids)
+
+  transit_gateway_attachment_id = aws_ec2_transit_gateway_vpc_attachment.vpc_attachment.id
+  transit_gateway_route_table_id = var.tgw_association_route_table_ids[count.index]
+}
+
+resource "aws_ec2_transit_gateway_route_table_propagation" "tgw_route_table_propagation" {
+  count = length(var.tgw_association_route_table_ids)
+
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc_attachment.id
+  transit_gateway_route_table_id = var.tgw_propagation_route_table_ids[count.index]
+}
