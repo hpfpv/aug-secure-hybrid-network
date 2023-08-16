@@ -10,10 +10,15 @@ output "tgwattach_id" {
 
 output "nfw_endpoint_1" {
   description   = "ID du VPC endpoint Nfw dans la zone a"
-  value = element(flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*].attachment[*].endpoint_id), 0)
+  value = local.nfw_endpoint_ids[data.aws_availability_zones.azs.names[0]]
 }
 
 output "nfw_endpoint_2" {
   description   = "ID du VPC endpoint Nfw dans la zone b"
-  value = element(flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*].attachment[*].endpoint_id), 1)
+  value = local.nfw_endpoint_ids[data.aws_availability_zones.azs.names[1]]
+}
+
+output "nfw_endpoints" {
+  description   = "ID du VPC endpoint Nfw dans la zone a"
+  value = flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*])
 }

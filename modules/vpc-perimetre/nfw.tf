@@ -32,3 +32,24 @@ resource "aws_networkfirewall_firewall" "perimetre" {
     Name = "${var.resource_prefix}-nfw-perimetre"
   }
 }
+
+resource "aws_cloudwatch_log_group" "perimetre" {
+  name                  = "/aws/network-firewall/${var.resource_prefix}-nfw-perimetre"
+  retention_in_days     = 14
+  tags = {
+    Name = "/aws/network-firewall/${var.resource_prefix}-nfw-perimetre"
+  }
+}
+
+resource "aws_networkfirewall_logging_configuration" "perimetre" {
+  firewall_arn = aws_networkfirewall_firewall.perimetre.arn
+  logging_configuration {
+    log_destination_config {
+      log_destination = {
+        logGroup = aws_cloudwatch_log_group.perimetre.name
+      }
+      log_destination_type = "CloudWatchLogs"
+      log_type             = "FLOW"
+    }
+  }
+}

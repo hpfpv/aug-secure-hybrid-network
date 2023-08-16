@@ -141,19 +141,19 @@ resource "aws_route_table" "tgwattach_a" {
 resource "aws_route" "tgw_nfw_route_a" {
   route_table_id         = aws_route_table.tgwattach_a.id
   destination_cidr_block = "0.0.0.0/0"
-  vpc_endpoint_id        = element(flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*].attachment[*].endpoint_id), 0)
+  vpc_endpoint_id        = local.nfw_endpoint_ids[data.aws_availability_zones.azs.names[0]]
 }
 
 resource "aws_route" "tgwa_nfw_route_nat_a" { # Trafic vers les ALB dans le subnet Nat-A, bypass de la route local du VPC pour eviter un drop au niveau du NFW
   route_table_id         = aws_route_table.tgwattach_a.id
   destination_cidr_block = var.subnet_nata_cidr
-  vpc_endpoint_id        = element(flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*].attachment[*].endpoint_id), 0)
+  vpc_endpoint_id        = local.nfw_endpoint_ids[data.aws_availability_zones.azs.names[0]]
 }
 
 resource "aws_route" "tgwa_nfw_route_nat_b" { # Trafic vers les ALB dans le subnet Nat-B, bypass de la route local du VPC pour eviter un drop au niveau du NFW
   route_table_id         = aws_route_table.tgwattach_a.id
   destination_cidr_block = var.subnet_natb_cidr
-  vpc_endpoint_id        = element(flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*].attachment[*].endpoint_id), 1)
+  vpc_endpoint_id        = local.nfw_endpoint_ids[data.aws_availability_zones.azs.names[1]]
 }
 
 resource "aws_route_table_association" "tgwattach_a" {
@@ -172,19 +172,19 @@ resource "aws_route_table" "tgwattach_b" {
 resource "aws_route" "tgwb_nfw_route_b" {
   route_table_id         = aws_route_table.tgwattach_b.id
   destination_cidr_block = "0.0.0.0/0"
-  vpc_endpoint_id        = element(flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*].attachment[*].endpoint_id), 1)
+  vpc_endpoint_id        = local.nfw_endpoint_ids[data.aws_availability_zones.azs.names[1]]
 }
 
 resource "aws_route" "tgwb_nfw_route_nat_a" { # Trafic vers les ALB dans le subnet Nat-A, bypass de la route local du VPC pour eviter un drop au niveau du NFW
   route_table_id         = aws_route_table.tgwattach_b.id
   destination_cidr_block = var.subnet_nata_cidr
-  vpc_endpoint_id        = element(flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*].attachment[*].endpoint_id), 0)
+  vpc_endpoint_id        = local.nfw_endpoint_ids[data.aws_availability_zones.azs.names[0]]
 }
 
 resource "aws_route" "tgw_nfw_route_nat_b" { # Trafic vers les ALB dans le subnet Nat-B, bypass de la route local du VPC pour eviter un drop au niveau du NFW
   route_table_id         = aws_route_table.tgwattach_b.id
   destination_cidr_block = var.subnet_natb_cidr
-  vpc_endpoint_id        = element(flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*].attachment[*].endpoint_id), 1)
+  vpc_endpoint_id        = local.nfw_endpoint_ids[data.aws_availability_zones.azs.names[1]]
 }
 resource "aws_route_table_association" "tgwattach_b" {
   subnet_id      = aws_subnet.tgwattach_b.id
@@ -256,7 +256,7 @@ resource "aws_route_table" "nat_a" {
 resource "aws_route" "nat_nfw_route_a" {
   route_table_id         = aws_route_table.nat_a.id
   destination_cidr_block = "10.0.0.0/8"
-  vpc_endpoint_id        = element(flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*].attachment[*].endpoint_id), 0)
+  vpc_endpoint_id        = local.nfw_endpoint_ids[data.aws_availability_zones.azs.names[0]]
 }
 
 resource "aws_route" "nat_igw_route_a" {
@@ -281,7 +281,7 @@ resource "aws_route_table" "nat_b" {
 resource "aws_route" "nat_nfw_route_b" {
   route_table_id         = aws_route_table.nat_b.id
   destination_cidr_block = "10.0.0.0/8"
-  vpc_endpoint_id        = element(flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*].attachment[*].endpoint_id), 1)
+  vpc_endpoint_id        = local.nfw_endpoint_ids[data.aws_availability_zones.azs.names[1]]
 }
 
 resource "aws_route" "nat_igw_route_b" {
@@ -302,6 +302,7 @@ resource "aws_route_table_association" "nat_b" {
 resource "aws_ec2_transit_gateway_vpc_attachment" "vpc_attachment" {
   subnet_ids             = [aws_subnet.tgwattach_a.id, aws_subnet.tgwattach_b.id]
   transit_gateway_id     = var.tgw_principal_id
+  appliance_mode_support  = "enable"
   vpc_id                 = aws_vpc.perimetre.id
 
   tags = {
@@ -316,4 +317,14 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "vpc_attachment" {
 resource "aws_ram_resource_share_accepter" "ram_tgw_principal_accept" {
   count = length(var.ram_tgw_resource_share_arns)
   share_arn = var.ram_tgw_resource_share_arns[count.index]
+}
+
+################################################################################
+# Association Private Hosted Zone Central Endpoints
+################################################################################
+
+resource "aws_route53_zone_association" "endpoint" {
+  count = var.use_central_endpoints ? length(var.central_endpoints_phz) : 0
+  zone_id = var.central_endpoints_phz[count.index]
+  vpc_id  = aws_vpc.perimetre.id
 }

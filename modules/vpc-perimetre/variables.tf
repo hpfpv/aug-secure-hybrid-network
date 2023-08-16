@@ -48,19 +48,30 @@ variable "tgw_principal_id" {
 #     type                = list(string)
 # }
 
-variable "tgw_rt_shared_id" {
-    description         = "ID de la table de routage Shared du Tgw"
-    type                = string
-}
+# variable "tgw_rt_shared_id" {
+#     description         = "ID de la table de routage Shared du Tgw"
+#     type                = string
+# }
 
-variable "tgw_rt_segregated_id" {
-    description         = "ID de la table de routage Segregated du Tgw"
-    type                = string
-}
+# variable "tgw_rt_segregated_id" {
+#     description         = "ID de la table de routage Segregated du Tgw"
+#     type                = string
+# }
 
 variable "ram_tgw_resource_share_arns" {
     description         = "Arn du partage RAM du Transit Gateway"
     type                = list(string)
+}
+
+variable "use_central_endpoints" {
+    description         = "True or False si le VPC utilise les VPC Endpoints deployes dans le VPC Endpoint"
+    type                = bool
+}
+
+variable "central_endpoints_phz" {
+    description         = "Map des central endpoints avec les ID private Hosted Zone"
+    type                = list(string)
+    default             = []
 }
 
 variable "resource_prefix" {

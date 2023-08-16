@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
         source = "hashicorp/aws"
-        version = ">= 4.47"
+        version = ">= 5.12.0"
     }
   }
 }
@@ -13,6 +13,15 @@ provider "aws" {
   assume_role {
     role_arn = var.assume_role_network
     session_name = "terraform_network"
+  }
+}
+
+provider "aws" {
+  region =  var.onprem_region
+  alias = "network_onprem"
+  assume_role {
+    role_arn = var.assume_role_network
+    session_name = "terraform_network_onprem"
   }
 }
 

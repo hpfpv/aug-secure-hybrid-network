@@ -1,4 +1,5 @@
 output "vpn_connection_attributes" {
+  description = "Configurations du VPN Cloud"
   value = {
     arn                              = aws_vpn_connection.vpn.arn
     id                               = aws_vpn_connection.vpn.id

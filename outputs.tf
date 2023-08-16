@@ -9,5 +9,12 @@ output "nfw_endpoint_2" {
 }
 
 output "vpn_connection_attributes" {
-  value = module.vpn.vpn_connection_attributes
+  description = "Configurations du VPN Cloud"
+  sensitive = true
+  value = module.vpn_cloud.vpn_connection_attributes
+}
+
+output "central_endpoints" {
+  description   = "Liste des ID des PHZ"
+  value         = module.vpc_endpoint.central_endpoints_phz
 }

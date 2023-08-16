@@ -48,18 +48,11 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_eip" "nat_a" {
+  depends_on                = [aws_internet_gateway.igw]
   domain = "vpc"
 
   tags = {
       Name = "${var.resource_prefix}-onprem-nat-a"
-  }
-}
-
-resource "aws_eip" "onprem_vpn_ip" {
-  domain = "vpc"
-
-  tags = {
-      Name = "${var.resource_prefix}-onprem-vpn-ip"
   }
 }
 
@@ -131,13 +124,80 @@ resource "aws_route_table_association" "public_a" {
 }
 
 ################################################################################
-# Interface Server VPN
+# Security Group Server VPN
 ################################################################################
+
+resource "aws_security_group" "vpn_server_sg" {
+  name = "${var.resource_prefix}-vpn-server-sg"
+  description = "SG pour le server VPN OnPrem"
+  vpc_id = aws_vpc.onprem.id
+
+  ingress {
+    description         = "SSH from internet"
+    from_port           = 22
+    to_port             = 22
+    protocol            = "tcp"
+    cidr_blocks         = ["0.0.0.0/0"]
+    ipv6_cidr_blocks    = []
+  }
+
+  ingress {
+    description         = "VPN Cloud"
+    from_port           = 4500
+    to_port             = 4500
+    protocol            = "udp"
+    cidr_blocks         = ["${var.cloud_vpn_config.tunnel1_address}/32", "${var.cloud_vpn_config.tunnel2_address}/32"]
+    ipv6_cidr_blocks    = []
+  }
+
+    ingress {
+    description         = "VPN Cloud"
+    from_port           = 500
+    to_port             = 500
+    protocol            = "udp"
+    cidr_blocks         = ["${var.cloud_vpn_config.tunnel1_address}/32", "${var.cloud_vpn_config.tunnel2_address}/32"]
+    ipv6_cidr_blocks    = []
+  }
+
+  ingress {
+    description         = "Allow all from VPC"
+    from_port           = 0
+    to_port             = 0
+    protocol            = "-1"
+    cidr_blocks         = [var.vpc_cidr]
+    ipv6_cidr_blocks    = []
+  }
+
+  egress {
+    from_port           = 0
+    to_port             = 0
+    protocol            = "-1"
+    cidr_blocks         = ["0.0.0.0/0"]
+    ipv6_cidr_blocks    = ["::/0"]
+  }
+
+  tags = {
+      Name = "${var.resource_prefix}-vpn-server-sg"
+  }
+}
+
+################################################################################
+# Interface du Server VPN
+################################################################################
+
+resource "aws_eip" "onprem_vpn_ip" {
+  domain = "vpc"
+
+  tags = {
+      Name = "${var.resource_prefix}-onprem-vpn-ip"
+  }
+}
 
 resource "aws_network_interface" "vpn_server_private_interface" {
   subnet_id               = aws_subnet.public_a.id
   private_ips             = var.server_vpn_private_ips
-  # security_groups         = 
+  security_groups         = [aws_security_group.vpn_server_sg.id]
+  source_dest_check       = false
 
   tags = {
     Name = "${var.resource_prefix}-vpn-server-private-interface"

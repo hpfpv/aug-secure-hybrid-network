@@ -134,7 +134,7 @@ variable "subnet_prod_appb_cidr" {
 }
 
 ################################################################################
-# VPN
+# VPN AWS
 ################################################################################
 
 variable "cgw_bgp_asn" {
@@ -142,8 +142,46 @@ variable "cgw_bgp_asn" {
     type                = number
 }
 
-variable "cgw_ip" {
-    description         = "IP publique du Customer Gateway"
+################################################################################
+# VPC OnPrem
+################################################################################
+
+variable "cloud_cidr" {
+    description         = "CIDR du Cloud"
+    type                = string
+}
+
+variable "vpc_onprem_cidr" {
+    description         = "CIDR du VPC OnPrem"
+    type                = string
+}
+
+variable "subnet_onprem_privatea_cidr" {
+    description         = "CIDR du Subnet OnPrem Private-A"
+    type                = string
+}
+
+variable "subnet_onprem_publica_cidr" {
+    description         = "CIDR du Subnet OnPrem Public-A"
+    type                = string
+}
+
+variable "onprem_region" {
+  description           = "Region AWS pour la creation des ressources On Prem"
+  type                  = string
+}
+
+################################################################################
+# VPN OnPrem
+################################################################################
+
+variable "server_vpn_private_ips" {
+    description         = "Liste des IP Privees du server VPN dans le subnet Public-A"
+    type                = list(string)
+}
+
+variable "server_vpn_instance_type" {
+    description         = "Type de l'instance du server VPN"
     type                = string
 }
 

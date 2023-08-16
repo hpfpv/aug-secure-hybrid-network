@@ -18,14 +18,14 @@ variable "subnet_publica_cidr" {
     type                = string
 }
 
+variable "cloud_vpn_config" {
+    description         = "Configurations du VPN Cloud"
+    type                = map(any)
+}
+
 variable "server_vpn_private_ips" {
     description         = "Liste des IP privees pour le server VPN dans le subnet Public-A"
     type                = list(string)
-}
-
-variable "server_vpn_instance_type" {
-    description         = "Instance Type EC2 du Server VPN"
-    type                = string
 }
 
 variable "resource_prefix" {

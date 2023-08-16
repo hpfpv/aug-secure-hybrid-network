@@ -38,6 +38,17 @@ variable "tgw_propagation_route_table_ids" {
     type                = list(string)
 }
 
+variable "use_central_endpoints" {
+    description         = "True or False si le VPC utilise les VPC Endpoints deployes dans le VPC Endpoint"
+    type                = bool
+}
+
+variable "central_endpoints_phz" {
+    description         = "Map des central endpoints avec les ID private Hosted Zone"
+    type                = list(string)
+    default             = []
+}
+
 variable "resource_prefix" {
     description         = "Prefixe pour le nom des ressources"
     type                = string

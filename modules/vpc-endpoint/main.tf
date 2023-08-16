@@ -74,6 +74,16 @@ resource "aws_route" "tgw_route" {
   transit_gateway_id        = var.tgw_principal_id
 }
 
+resource "aws_route_table_association" "tgw_route_tgw_a" {
+  subnet_id      = aws_subnet.tgwattach_a.id
+  route_table_id = aws_route_table.endpoint.id
+}
+
+resource "aws_route_table_association" "tgw_route_tgw_b" {
+  subnet_id      = aws_subnet.tgwattach_b.id
+  route_table_id = aws_route_table.endpoint.id
+}
+
 resource "aws_route_table_association" "tgw_route_endpoint_a" {
   subnet_id      = aws_subnet.endpoint_a.id
   route_table_id = aws_route_table.endpoint.id
@@ -126,10 +136,37 @@ resource "aws_vpc_endpoint" "service" {
     aws_security_group.endpoint.id,
   ]
 
-  private_dns_enabled = true
+  private_dns_enabled = false
 
   tags = {
       Name = "${var.resource_prefix}-endpoint-${var.services[count.index]}"
+  }
+}
+
+################################################################################
+# Creation des Private Hosted Zones pour les Endpoints
+################################################################################
+
+resource "aws_route53_zone" "phz" {
+  count = length(var.services)
+  name  = "${var.services[count.index]}.${var.region}.amazonaws.com"
+
+  vpc {
+    vpc_id     = aws_vpc.endpoint.id
+    vpc_region = var.region
+  }
+}
+
+resource "aws_route53_record" "vpce_records" {
+  count = length(aws_route53_zone.phz)
+  zone_id = aws_route53_zone.phz[count.index].zone_id
+  name    = aws_route53_zone.phz[count.index].name
+  type    = "A"
+
+  alias {
+    name                   = aws_vpc_endpoint.service[count.index].dns_entry[0].dns_name
+    zone_id                = aws_vpc_endpoint.service[count.index].dns_entry[0].hosted_zone_id
+    evaluate_target_health = false
   }
 }
 
@@ -143,7 +180,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "vpc_attachment" {
   vpc_id                 = aws_vpc.endpoint.id
 
   tags = {
-      Name = "${var.resource_prefix}-vpc-perimetre-tgwattach"
+      Name = "${var.resource_prefix}-vpc-endpoint-tgwattach"
   }
 }
 
@@ -155,7 +192,7 @@ resource "aws_ec2_transit_gateway_route_table_association" "tgw_route_table_asso
 }
 
 resource "aws_ec2_transit_gateway_route_table_propagation" "tgw_route_table_propagation" {
-  count = length(var.tgw_association_route_table_ids)
+  count = length(var.tgw_propagation_route_table_ids)
 
   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc_attachment.id
   transit_gateway_route_table_id = var.tgw_propagation_route_table_ids[count.index]
