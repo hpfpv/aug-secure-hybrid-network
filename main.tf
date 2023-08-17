@@ -4,6 +4,7 @@ module "tgw_principal" {
     }
     source                              = "./modules/tgw"
     ram_principals                      = var.ram_principals
+    tgw_bgp_asn                         = var.tgw_bgp_asn
     resource_prefix                     = var.resource_prefix
 }
 
@@ -135,6 +136,8 @@ module "vpn_onprem" {
       aws = aws.network_onprem
     }
     source                              = "./modules/vpn-onprem"
+    cgw_bgp_asn                         = var.cgw_bgp_asn
+    tgw_bgp_asn                         = var.tgw_bgp_asn
     cloud_cidr                          = var.cloud_cidr
     onprem_cidr                         = module.vpc_onprem.vpc_cidr
     onprem_subnet_publica_id            = module.vpc_onprem.subnet_publica_id

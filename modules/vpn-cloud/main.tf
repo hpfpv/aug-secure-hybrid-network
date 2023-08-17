@@ -35,7 +35,7 @@ resource "aws_ec2_transit_gateway_route_table_association" "tgw_route_table_asso
 }
 
 resource "aws_ec2_transit_gateway_route_table_propagation" "tgw_route_table_propagation" {
-  count = length(var.tgw_association_route_table_ids)
+  count = length(var.tgw_propagation_route_table_ids)
 
   transit_gateway_attachment_id  = aws_vpn_connection.vpn.transit_gateway_attachment_id
   transit_gateway_route_table_id = var.tgw_propagation_route_table_ids[count.index]

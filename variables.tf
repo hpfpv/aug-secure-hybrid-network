@@ -7,6 +7,11 @@ variable "ram_principals" {
     type                = list(string)
 }
 
+variable "tgw_bgp_asn" {
+    description         = "BGP ASN du Transit Gateway AWS"
+    type                = number
+}
+
 ################################################################################
 # VPC Perimetre
 ################################################################################

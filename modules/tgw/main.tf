@@ -1,7 +1,7 @@
 resource "aws_ec2_transit_gateway" "tgw" {
 
   description                     = "Transit Gateway Principal"
-  amazon_side_asn                 = 65521
+  amazon_side_asn                 = var.tgw_bgp_asn
   default_route_table_association = "disable"
   default_route_table_propagation = "disable"
   auto_accept_shared_attachments  = "enable"

@@ -155,6 +155,10 @@ resource "aws_route53_zone" "phz" {
     vpc_id     = aws_vpc.endpoint.id
     vpc_region = var.region
   }
+
+  lifecycle {
+    ignore_changes = [ vpc ]
+  }
 }
 
 resource "aws_route53_record" "vpce_records" {

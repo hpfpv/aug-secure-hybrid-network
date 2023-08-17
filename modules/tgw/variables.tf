@@ -3,6 +3,11 @@ variable "ram_principals" {
     type                = list(string)
 }
 
+variable "tgw_bgp_asn" {
+    description         = "BGP ASN du Transit Gateway"
+    type                = number
+}
+
 variable "resource_prefix" {
     description         = "Prefixe pour le nom des ressources"
     type                = string

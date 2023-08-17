@@ -1,3 +1,13 @@
+variable "cgw_bgp_asn" {
+    description         = "BGP ASN du Customer Gateway"
+    type                = number
+}
+
+variable "tgw_bgp_asn" {
+    description         = "BGP ASN du Transit Gateway AWS"
+    type                = number
+}
+
 variable "cloud_cidr" {
     description         = "CIDR du des subnets Cloud"
     type                = string
