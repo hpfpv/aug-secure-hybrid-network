@@ -19,6 +19,6 @@ output "nfw_endpoint_2" {
 }
 
 output "nfw_endpoints" {
-  description   = "ID du VPC endpoint Nfw dans la zone a"
+  description   = "Liste des NFW endpoints"
   value = flatten(aws_networkfirewall_firewall.perimetre.firewall_status[0].sync_states[*])
 }

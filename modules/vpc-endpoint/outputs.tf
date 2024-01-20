@@ -10,7 +10,7 @@ output "tgwattach_id" {
 
 output "central_endpoints" {
   description   = "Liste des info des VPC endpoints deployes"
-  value         = local.endpoints_zone_ids
+  value         = local.endpoints_dns
 }
 
 output "central_endpoints_phz" {
