@@ -8,6 +8,3 @@ resource "aws_s3_object" "userdata_sh" {
   key    = "vpn/ipsec-vti.sh"
   source = "./modules/vpn-onprem/ipsec-vti.sh"
 }
-
-
-
