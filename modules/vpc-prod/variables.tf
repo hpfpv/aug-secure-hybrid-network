@@ -49,6 +49,12 @@ variable "central_endpoints_phz" {
     default             = []
 }
 
+variable "subnet_sharing_principals" {
+    description         = "Liste des ID de comptes ou ARN OU/Organisation pour le partage de Subnet"
+    type                = list(string)
+    default             = []
+}
+
 variable "resource_prefix" {
     description         = "Prefixe pour le nom des ressources"
     type                = string

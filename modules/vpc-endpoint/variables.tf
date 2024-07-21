@@ -30,7 +30,7 @@ variable "tgw_principal_id" {
 
 variable "services" {
   type    = list(string)
-  default = ["ec2", "ssm", "ec2messages", "ssmmessages", "kms", "logs", "cloudformation", "secretsmanager", "monitoring"]
+  default = []
 }
 
 variable "tgw_association_route_table_ids" {

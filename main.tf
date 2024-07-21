@@ -60,6 +60,7 @@ module "vpc_endpoint" {
     tgw_principal_id                    = module.tgw_principal.tgw_id
     tgw_association_route_table_ids     = [module.tgw_principal.tgw_rt_core_id]
     tgw_propagation_route_table_ids     = [module.tgw_principal.tgw_rt_core_id, module.tgw_principal.tgw_rt_shared_id, module.tgw_principal.tgw_rt_segregated_id, module.tgw_principal.tgw_rt_onprem_id]
+    services                            = ["ec2", "ssm", "ec2messages", "ssmmessages", "kms", "logs", "cloudformation", "secretsmanager", "monitoring"]
     resource_prefix                     = var.resource_prefix
     region                              = var.region
 }
@@ -79,6 +80,7 @@ module "vpc_dev" {
     tgw_propagation_route_table_ids     = [module.tgw_principal.tgw_rt_core_id, module.tgw_principal.tgw_rt_shared_id, module.tgw_principal.tgw_rt_onprem_id]
     use_central_endpoints               = true
     central_endpoints_phz               = module.vpc_endpoint.central_endpoints_phz
+    subnet_sharing_principals           = []
     resource_prefix                     = var.resource_prefix
 }
 
@@ -97,6 +99,7 @@ module "vpc_prod" {
     tgw_propagation_route_table_ids     = [module.tgw_principal.tgw_rt_core_id, module.tgw_principal.tgw_rt_shared_id, module.tgw_principal.tgw_rt_onprem_id]
     use_central_endpoints               = true
     central_endpoints_phz               = module.vpc_endpoint.central_endpoints_phz
+    subnet_sharing_principals           = []
     resource_prefix                     = var.resource_prefix
 }
 

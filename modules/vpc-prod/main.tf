@@ -129,3 +129,23 @@ resource "aws_route53_zone_association" "endpoint" {
   zone_id = var.central_endpoints_phz[count.index]
   vpc_id  = aws_vpc.prod.id
 }
+
+################################################################################
+# Partage des Subnets
+################################################################################
+resource "aws_ram_resource_share" "subnet_share" {
+  name                      = "${var.resource_prefix}-vpc-dev-share"
+  allow_external_principals = false  # true for accounts outside organization
+}
+
+resource "aws_ram_principal_association" "principal" {
+  count               = length(var.subnet_sharing_principals)
+  principal           = var.subnet_sharing_principals[count.index]
+  resource_share_arn  = aws_ram_resource_share.subnet_share.arn
+}
+
+resource "aws_ram_resource_association" "subnet" {
+  count               = length(local.subnet_to_share)
+  resource_arn       = local.subnet_to_share[count.index]
+  resource_share_arn = aws_ram_resource_share.subnet_share.arn
+}
