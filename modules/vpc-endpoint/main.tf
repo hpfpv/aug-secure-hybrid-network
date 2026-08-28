@@ -175,6 +175,75 @@ resource "aws_route53_record" "vpce_records" {
 }
 
 ################################################################################
+# Endpoints cross-region
+#
+# Meme VPC, meme security group, meme mecanisme DNS que les endpoints en
+# region. Seul change service_region, qui pointe l'endpoint vers un endpoint
+# service publie ailleurs. Le resolveur du VPC repond a ces noms comme aux
+# autres, et les spokes les recoivent par central_endpoints_phz sans savoir
+# que le service vit dans une autre region.
+#
+# Le role qui applique doit porter `vpce:AllowMultiRegion` et aucune SCP ne
+# doit le refuser, sinon la creation echoue avec un deny explicite.
+################################################################################
+
+resource "aws_vpc_endpoint" "cross_region" {
+  count             = length(var.cross_region_endpoints)
+  vpc_id            = aws_vpc.endpoint.id
+  service_name      = var.cross_region_endpoints[count.index].service_name
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [aws_subnet.endpoint_a.id, aws_subnet.endpoint_b.id]
+
+  security_group_ids = [
+    aws_security_group.endpoint.id,
+  ]
+
+  # Moitie consommatrice de PrivateLink cross-region. Le jour ou le service
+  # rejoint la liste des services AWS cross-region, ce meme argument pointe
+  # directement vers le service et tout le module vpc-endpoint-cross-region
+  # disparait.
+  service_region = var.cross_region_endpoints[count.index].service_region
+
+  # Le nom prive d'un endpoint service exige une verification de propriete du
+  # domaine, impossible ici puisque le domaine appartient a AWS. La PHZ
+  # ci-dessous fait ce travail a la place.
+  private_dns_enabled = false
+
+  tags = {
+      Name = "${var.resource_prefix}-endpoint-${var.cross_region_endpoints[count.index].name}"
+  }
+}
+
+resource "aws_route53_zone" "phz_cross_region" {
+  count = length(var.cross_region_endpoints)
+  name  = var.cross_region_endpoints[count.index].dns_name
+
+  vpc {
+    vpc_id     = aws_vpc.endpoint.id
+    vpc_region = var.region
+  }
+
+  lifecycle {
+    ignore_changes = [ vpc ]
+  }
+}
+
+# Le nom de l'enregistrement egale celui de la zone : il siege a l'apex, ou le
+# DNS interdit un CNAME. L'alias A est la seule forme correcte.
+resource "aws_route53_record" "vpce_records_cross_region" {
+  count   = length(var.cross_region_endpoints)
+  zone_id = aws_route53_zone.phz_cross_region[count.index].zone_id
+  name    = aws_route53_zone.phz_cross_region[count.index].name
+  type    = "A"
+
+  alias {
+    name                   = local.cross_region_dns[count.index].dns_name
+    zone_id                = local.cross_region_dns[count.index].hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+################################################################################
 # Attachement Tgw et Association/ Propagation table de routage
 ################################################################################
 

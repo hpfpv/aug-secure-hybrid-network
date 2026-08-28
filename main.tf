@@ -47,6 +47,19 @@ module "tgw_route_0" {
     resource_prefix                     = var.resource_prefix
 }
 
+module "vpc_endpoint_cross_region" {
+    providers = {
+      aws = aws.network_service_region
+    }
+    source                              = "./modules/vpc-endpoint-cross-region"
+    service_region                      = var.service_region
+    consumer_region                     = var.region
+    services                            = var.cross_region_services
+    vpc_cidr                            = var.vpc_endpoint_service_region_cidr
+    availability_zones                  = var.endpoint_service_region_azs
+    resource_prefix                     = var.resource_prefix
+}
+
 module "vpc_endpoint" {
     providers = {
       aws = aws.network
@@ -61,6 +74,7 @@ module "vpc_endpoint" {
     tgw_association_route_table_ids     = [module.tgw_principal.tgw_rt_core_id]
     tgw_propagation_route_table_ids     = [module.tgw_principal.tgw_rt_core_id, module.tgw_principal.tgw_rt_shared_id, module.tgw_principal.tgw_rt_segregated_id, module.tgw_principal.tgw_rt_onprem_id]
     services                            = ["ec2", "ssm", "ec2messages", "ssmmessages", "kms", "logs", "cloudformation", "secretsmanager", "monitoring"]
+    cross_region_endpoints              = module.vpc_endpoint_cross_region.endpoint_services
     resource_prefix                     = var.resource_prefix
     region                              = var.region
 }
