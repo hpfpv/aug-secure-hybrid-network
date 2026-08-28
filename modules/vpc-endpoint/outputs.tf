@@ -14,6 +14,6 @@ output "central_endpoints" {
 }
 
 output "central_endpoints_phz" {
-  description = "Liste des ID des PHZ"
-  value = aws_route53_zone.phz[*].zone_id
+  description = "Liste des ID des PHZ, endpoints en region et cross-region confondus"
+  value = concat(aws_route53_zone.phz[*].zone_id, aws_route53_zone.phz_cross_region[*].zone_id)
 }

@@ -52,3 +52,20 @@ variable "region" {
   description           = "Region AWS pour la creation des ressources"
   type                  = string
 }
+
+variable "cross_region_endpoints" {
+    description         = <<-EOT
+        Endpoint services publies par le module vpc-endpoint-cross-region.
+        Chaque entree produit ici un endpoint consommateur et sa PHZ,
+        exactement comme un service en region. Les VPC spokes ne voient aucune
+        difference : les zones sortent dans central_endpoints_phz avec les
+        autres.
+    EOT
+    type                = list(object({
+        name           = string
+        dns_name       = string
+        service_name   = string
+        service_region = string
+    }))
+    default             = []
+}

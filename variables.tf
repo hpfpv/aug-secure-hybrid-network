@@ -213,3 +213,37 @@ variable "region" {
   description           = "Region AWS pour la creation des ressources"
   type                  = string
 }
+
+################################################################################
+# Endpoints cross-region
+################################################################################
+
+variable "service_region" {
+    description         = "Region ou vit le service AWS inaccessible en prive depuis la region principale"
+    type                = string
+    default             = "us-east-1"
+}
+
+variable "cross_region_services" {
+    description         = "Services a republier depuis service_region. Le nom DNS est explicite, jamais deduit"
+    type                = list(object({
+      name     = string
+      dns_name = string
+    }))
+    default             = [{
+      name     = "bedrock-mantle"
+      dns_name = "bedrock-mantle.us-east-1.api.aws"
+    }]
+}
+
+variable "vpc_endpoint_service_region_cidr" {
+    description         = "CIDR du VPC dans service_region. Hors de toute plage routee par la landing zone"
+    type                = string
+    default             = "192.168.240.0/26"
+}
+
+variable "endpoint_service_region_azs" {
+    description         = "Deux AZ dans service_region. Verifier l'offre du service et les ID de zone dans le compte cible"
+    type                = list(string)
+    default             = ["us-east-1b", "us-east-1c"]
+}
